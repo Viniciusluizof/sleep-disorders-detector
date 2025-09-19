@@ -34,7 +34,7 @@ with col2:
 
     bmi_opt = ['Overweight', 'Healthy Weight', 'Obese']
 
-    bim = st.selectbox("Qual o seu IMC? ", options=bmi_opt)
+    bmi = st.selectbox("Qual o seu IMC? ", options=bmi_opt)
     
     pressao = st.text_input("Digite sua pressão arterial (ex: 140/90):")
 
@@ -57,3 +57,67 @@ if pressao and '/' in pressao:
         diastolic = int(diastolic.strip())
     except ValueError:
         st.error("Por favor, digite no formato correto (ex: 120/80).")
+
+
+data = {
+    
+    'Gender':gender, 
+    'Age':age, 
+    'Occupation':occupation, 
+    'Sleep Duration':sleep_dur,
+    'Quality of Sleep':quality_sleep, 
+    'Physical Activity Level':physical_act, 
+    'Stress Level':stress,
+    'BMI Category': bmi, 
+    'Blood Pressure': pressao, 
+    'Heart Rate': heart_rate, 
+    'Daily Steps': daily_steps ,
+    'Systolic': systolic, 
+    'Diastolic': diastolic
+}
+
+df = pd.DataFrame([data])
+
+dummy_vars = [
+      'Gender', 
+      'Occupation',
+      'BMI Category'
+]
+
+df_dummies = pd.get_dummies(df[dummy_vars]).astype(int)
+df = pd.concat([df.drop(columns=dummy_vars), df_dummies], axis=1)
+
+df_template = pd.DataFrame(columns=[
+    'Gender_Female', 
+    'Gender_Male', 
+    'Occupation_Accountant',
+    'Occupation_Doctor', 
+    'Occupation_Engineer', 
+    'Occupation_Lawyer',
+    'Occupation_Manager', 
+    'Occupation_Nurse',
+    'Occupation_Sales Representative', 
+    'Occupation_Salesperson',
+    'Occupation_Scientist', 
+    'Occupation_Software Engineer',
+    'Occupation_Teacher', 
+    'BMI Category_Healthy Weight',
+    'BMI Category_Obese', 
+    'BMI Category_Overweight', 
+    'Age',
+    'Sleep Duration', 
+    'Quality of Sleep', 
+    'Physical Activity Level',
+    'Stress Level',
+    'Heart Rate', 
+    'Daily Steps', 
+    'Systolic', 
+    'Diastolic',
+])
+
+df = df.reindex(columns=df_template.columns, fill_value=0)
+
+proba = model["model"].predict_proba(df[model['features']])[:,1][0]
+
+st.success(f"Probabilidade de ter problemas de sono: {proba*100:.2f}%")
+
